@@ -8,7 +8,7 @@ const Number = ({person,handleClick}) =>{
 const Persons = ({persons, handleClick}) =>{
     return(
         <>
-            {persons.map(p => (<Number key={p.name} handleClick = {handleClick} person = {p}/>))}
+            {persons.map(p => (<Number key={p.id} handleClick = {handleClick} person = {p}/>))}
         </>
     )
 }
