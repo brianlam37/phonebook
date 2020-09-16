@@ -21,34 +21,85 @@ const App = () => {
 
     const handleClick = (e) =>{
         e.preventDefault();
-        const newPerson = {
-            name: newName, 
-            number: newNumber
+        let exists = persons.find((person)=>person.name === newName);
+
+        if(exists!== undefined){
+            if(window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)){
+                let index = persons.findIndex(p => p.id === exists.id);
+                const newPerson = {
+                    name: newName, 
+                    number: newNumber
+                }
+                personService
+                    .update(exists.id,newPerson).then(personResponse=>{
+                        if(personResponse!== null){
+                            let copy = [...persons];
+                            copy[index] = personResponse;
+                            setPersons(copy);
+                            setNewName('');
+                            setNewNumber('');
+                        }else{
+                            setMessage(
+                                `Information of ${exists.name} has already been removed from server`
+                            );
+                            setMessageType('error');
+                            setTimeout(() => {
+                                setMessage(null);
+                                setMessageType(null);
+                            }, 5000)
+                            personService
+                                .getAll()
+                                .then(persons => {
+                                    setPersons(persons)
+                                })
+                        }
+                    })
+                    .catch(error => {
+                        setMessage(
+                            `${error.response.data.error}`
+                        );
+                        setMessageType('error');
+                        setTimeout(() => {
+                            setMessage(null);
+                            setMessageType(null);
+                        }, 5000)
+                    });
+            }
+        }else{
+            const newPerson = {
+                name: newName, 
+                number: newNumber
+            }
+            personService
+            .create(newPerson)
+            .then(personResponse =>{
+                setMessage(
+                    `Added ${newName}`
+                )
+                setMessageType('success');
+                setTimeout(() => {
+                    setMessage(null)
+                    setMessageType(null);
+                }, 5000)
+                setPersons(persons.concat(personResponse));
+                setNewName('');
+                setNewNumber('');
+            }).catch(error => {
+                setMessage(
+                    `${error.response.data.error}`
+                )
+                setMessageType('error');
+                setTimeout(() => {
+                    setMessage(null)
+                    setMessageType(null);
+                }, 5000)
+                personService
+                    .getAll()
+                    .then(persons => {
+                        setPersons(persons)
+                    })
+            });
         }
-        personService
-        .create(newPerson)
-        .then(personResponse =>{
-            setMessage(
-                `Added ${newName}`
-            )
-            setMessageType('success');
-            setTimeout(() => {
-                setMessage(null)
-                setMessageType(null);
-            }, 5000)
-            setPersons(persons.concat(personResponse));
-            setNewName('');
-            setNewNumber('');
-        }).catch(error => {
-            setMessage(
-                `There was an error adding ${newName}`
-            )
-            setMessageType('error');
-            setTimeout(() => {
-                setMessage(null)
-                setMessageType(null);
-            }, 5000)
-        });
     }
 
     const handleDeleteUpdate = (person) =>{
